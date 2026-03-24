@@ -4,35 +4,11 @@ import React, { useState, useEffect } from 'react';
 // THE DISCIPLINED TRADER — A Serene Trading Journal
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// --- 1. SYNC CONFIGURATION ---
-// Paste your Google Apps Script Web App URL here
-const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbz9yzwJprVZZu0lWfs7C99SIy627AVuIx3wtriFEr1b97WiXGtW7fxfylAZOSdF_KRUlg/exec";
-
-// Configuration - Update with your Google Sheet ID
-const SHEET_ID = "AKfycbz9yzwJprVZZu0lWfs7C99SIy627AVuIx3wtriFEr1b97WiXGtW7fxfylAZOSdF_KRUlg";
-
-// Local storage keys
 const STORAGE_KEYS = {
   PRE_MARKET: 'disciplined_trader_premarket',
   POST_MARKET: 'disciplined_trader_postmarket'
 };
 
-// --- 2. SYNC LOGIC ---
-const syncToSheet = async (type, entry) => {
-  if (!SHEET_API_URL || SHEET_API_URL.includes("YOUR_APPS_SCRIPT")) return;
-  try {
-    await fetch(`${SHEET_API_URL}?sheet=${type}`, {
-      method: 'POST',
-      mode: 'no-cors',
-      cache: 'no-cache',
-      body: JSON.stringify(entry)
-    });
-  } catch (error) {
-    console.error("Sheet sync failed:", error);
-  }
-};
-
-// Load data from localStorage
 const loadData = (key) => {
   try {
     const data = localStorage.getItem(key);
@@ -42,7 +18,6 @@ const loadData = (key) => {
   }
 };
 
-// Save data to localStorage
 const saveData = (key, data) => {
   localStorage.setItem(key, JSON.stringify(data));
 };
@@ -357,6 +332,22 @@ const styles = `
   .history-status.yes { background: var(--green-soft); color: var(--green); }
   .history-status.no { background: var(--red-soft); color: var(--red); }
 
+  .delete-btn {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    margin-left: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+  }
+  .delete-btn:hover { background: var(--red-soft); color: var(--red); }
+  .delete-btn svg { width: 14px; height: 14px; }
+
   .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; display: flex; justify-content: center; padding: 10px 16px 24px; pointer-events: none; }
   .bottom-nav-inner { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 28px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 8px 40px rgba(42, 168, 208, 0.25), 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8); pointer-events: auto; max-width: 300px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.6); }
   .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 20px; border-radius: 20px; background: transparent; border: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: inherit; min-width: 68px; position: relative; }
@@ -458,6 +449,14 @@ const Icons = {
     <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <line x1="18" y1="6" x2="6" y2="18"/>
       <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  ),
+  Trash: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+      <line x1="10" y1="11" x2="10" y2="17"></line>
+      <line x1="14" y1="11" x2="14" y2="17"></line>
     </svg>
   ),
   AlertTriangle: () => (
@@ -602,7 +601,6 @@ const PreMarketPage = ({ onSave }) => {
     }
     
     saveData(STORAGE_KEYS.PRE_MARKET, data);
-    syncToSheet('PreMarket', newEntry); // Added Sync
     onSave('success', `Plan locked for ${formatShortDate(selectedDate)}`);
   };
 
@@ -815,7 +813,6 @@ const PostMarketPage = ({ onSave }) => {
     }
     
     saveData(STORAGE_KEYS.POST_MARKET, data);
-    syncToSheet('PostMarket', newEntry); // Added Sync
     
     const dayType = followedPlan && mood >= 4 ? 'GREEN' : followedPlan ? 'YELLOW' : 'RED';
     const toastType = dayType === 'GREEN' ? 'success' : dayType === 'YELLOW' ? 'warning' : 'error';
@@ -993,25 +990,37 @@ const CalendarPage = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   
+  // Manage data in state to allow immediate updates on delete
+  const [journalEntries, setJournalEntries] = useState(loadData(STORAGE_KEYS.POST_MARKET));
+  
   const today = new Date();
-  const data = loadData(STORAGE_KEYS.POST_MARKET);
 
-  const sortedData = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+  // Handle entry deletion
+  const handleDeleteEntry = (dateToDelete) => {
+    if (window.confirm(`Delete entry for ${formatShortDate(dateToDelete)}?`)) {
+      const updatedEntries = journalEntries.filter(entry => entry.date !== dateToDelete);
+      setJournalEntries(updatedEntries);
+      saveData(STORAGE_KEYS.POST_MARKET, updatedEntries);
+    }
+  };
+
+  // Calculate streak from state data
+  const sortedData = [...journalEntries].sort((a, b) => new Date(b.date) - new Date(a.date));
   let streak = 0;
   for (const d of sortedData) {
     if (d.followed_plan && d.mood_score >= 4) streak++;
     else break;
   }
 
-  const total = data.length;
-  const greens = data.filter(d => d.followed_plan && d.mood_score >= 4).length;
-  const yellows = data.filter(d => d.followed_plan && d.mood_score < 4).length;
-  const reds = data.filter(d => !d.followed_plan).length;
+  const total = journalEntries.length;
+  const greens = journalEntries.filter(d => d.followed_plan && d.mood_score >= 4).length;
+  const yellows = journalEntries.filter(d => d.followed_plan && d.mood_score < 4).length;
+  const reds = journalEntries.filter(d => !d.followed_plan).length;
   const complianceRate = total > 0 ? Math.round(((greens + yellows) / total) * 100) : 0;
   const complianceColor = complianceRate >= 80 ? 'var(--green)' : complianceRate >= 60 ? 'var(--yellow)' : 'var(--red)';
 
   const dayMap = {};
-  data.forEach(d => {
+  journalEntries.forEach(d => {
     dayMap[d.date] = d;
   });
 
@@ -1023,7 +1032,6 @@ const CalendarPage = () => {
   const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
 
   const calendarDays = [];
-  
   const prevMonth = new Date(currentYear, currentMonth, 0);
   for (let i = startPad - 1; i >= 0; i--) {
     calendarDays.push({ day: prevMonth.getDate() - i, type: 'other' });
@@ -1192,6 +1200,14 @@ const CalendarPage = () => {
                   <span className={`history-status ${d.followed_plan ? 'yes' : 'no'}`}>
                     {d.followed_plan ? '✓' : '×'}
                   </span>
+                  {/* Delete Button */}
+                  <button 
+                    className="delete-btn" 
+                    onClick={() => handleDeleteEntry(d.date)}
+                    title="Delete Entry"
+                  >
+                    <Icons.Trash />
+                  </button>
                 </div>
               </div>
             ))}
