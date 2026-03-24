@@ -8,12 +8,16 @@ import React, { useState, useEffect } from 'react';
 // Paste your Google Apps Script Web App URL here
 const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbz9yzwJprVZZu0lWfs7C99SIy627AVuIx3wtriFEr1b97WiXGtW7fxfylAZOSdF_KRUlg/exec";
 
+// Configuration - Update with your Google Sheet ID
+const SHEET_ID = "AKfycbz9yzwJprVZZu0lWfs7C99SIy627AVuIx3wtriFEr1b97WiXGtW7fxfylAZOSdF_KRUlg";
+
+// Local storage keys
 const STORAGE_KEYS = {
   PRE_MARKET: 'disciplined_trader_premarket',
   POST_MARKET: 'disciplined_trader_postmarket'
 };
 
-// --- 2. SYNC & STORAGE LOGIC ---
+// --- 2. SYNC LOGIC ---
 const syncToSheet = async (type, entry) => {
   if (!SHEET_API_URL || SHEET_API_URL.includes("YOUR_APPS_SCRIPT")) return;
   try {
@@ -28,6 +32,7 @@ const syncToSheet = async (type, entry) => {
   }
 };
 
+// Load data from localStorage
 const loadData = (key) => {
   try {
     const data = localStorage.getItem(key);
@@ -37,6 +42,7 @@ const loadData = (key) => {
   }
 };
 
+// Save data to localStorage
 const saveData = (key, data) => {
   localStorage.setItem(key, JSON.stringify(data));
 };
@@ -351,22 +357,6 @@ const styles = `
   .history-status.yes { background: var(--green-soft); color: var(--green); }
   .history-status.no { background: var(--red-soft); color: var(--red); }
 
-  .delete-btn {
-    background: transparent;
-    border: none;
-    padding: 6px;
-    margin-left: 8px;
-    cursor: pointer;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    color: var(--text-muted);
-  }
-  .delete-btn:hover { background: var(--red-soft); color: var(--red); }
-  .delete-btn svg { width: 14px; height: 14px; }
-
   .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; display: flex; justify-content: center; padding: 10px 16px 24px; pointer-events: none; }
   .bottom-nav-inner { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 28px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 8px 40px rgba(42, 168, 208, 0.25), 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8); pointer-events: auto; max-width: 300px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.6); }
   .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 20px; border-radius: 20px; background: transparent; border: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: inherit; min-width: 68px; position: relative; }
@@ -447,22 +437,128 @@ const Icons = {
       <line x1="3" y1="10" x2="21" y2="10"/>
     </svg>
   ),
-  Trash: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6"></polyline>
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-      <line x1="10" y1="11" x2="10" y2="17"></line>
-      <line x1="14" y1="11" x2="14" y2="17"></line>
+  Mail: () => (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+      <polyline points="22,6 12,13 2,6"/>
+    </svg>
+  ),
+  Lock: () => (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  ),
+  Check: () => (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  ),
+  X: () => (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  ),
+  AlertTriangle: () => (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
     </svg>
   ),
 };
 
-// --- REST OF UTILITIES ---
-const formatDate = (date) => new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-const formatShortDate = (date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-const calculateReadiness = (t, b, tr, c) => Math.round((({'Uptrend':2,'Sideways':1,'Downtrend':0}[t]||0)+({'Good':2,'Neutral':1,'Poor':0}[b]||0)+tr+({'Clear':2,'Neutral':1,'Overwhelmed':0}[c]||0))/9*100);
-const getReadinessColor = (pct) => pct >= 70 ? 'var(--green)' : pct >= 45 ? 'var(--yellow)' : 'var(--red)';
-const getReadinessStatus = (pct) => pct >= 70 ? 'Good to go' : pct >= 45 ? 'Proceed with caution' : 'Consider sitting out';
+// ═══════════════════════════════════════════════════════════════════════════════
+// UTILITY FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const formatDate = (date) => {
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+};
+
+const formatShortDate = (date) => {
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+const calculateReadiness = (trend, breadth, traction, cognitive) => {
+  const trendScore = { 'Uptrend': 2, 'Sideways': 1, 'Downtrend': 0 }[trend] || 0;
+  const breadthScore = { 'Good': 2, 'Neutral': 1, 'Poor': 0 }[breadth] || 0;
+  const cogScore = { 'Clear': 2, 'Neutral': 1, 'Overwhelmed': 0 }[cognitive] || 0;
+  return Math.round(((trendScore + breadthScore + traction + cogScore) / 9) * 100);
+};
+
+const getReadinessColor = (pct) => {
+  if (pct >= 70) return 'var(--green)';
+  if (pct >= 45) return 'var(--yellow)';
+  return 'var(--red)';
+};
+
+const getReadinessStatus = (pct) => {
+  if (pct >= 70) return 'Good to go';
+  if (pct >= 45) return 'Proceed with caution';
+  return 'Consider sitting out';
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const Toast = ({ message, type, show }) => (
+  <div className={`toast ${type} ${show ? 'show' : ''}`}>
+    <span className="toast-icon">{type === 'success' ? '✓' : type === 'warning' ? '!' : '×'}</span>
+    {message}
+  </div>
+);
+
+const Slider = ({ value, onChange, min = 0, max = 5 }) => {
+  const pct = ((value - min) / (max - min)) * 100;
+  const color = value >= 4 ? 'var(--green)' : value >= 2 ? 'var(--yellow)' : 'var(--red)';
+  
+  const handleClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    onChange(Math.round(pct * (max - min) + min));
+  };
+  
+  return (
+    <div className="slider-container">
+      <div className="slider-track" onClick={handleClick}>
+        <div className="slider-fill" style={{ width: `${pct}%`, background: color }} />
+        <div className="slider-thumb" style={{ left: `${pct}%` }} />
+      </div>
+      <div className="slider-labels">
+        <span>Panic / FOMO</span>
+        <span>Clinical flow</span>
+      </div>
+    </div>
+  );
+};
+
+const Toggle = ({ value, onChange, label }) => (
+  <div className="toggle-group">
+    <div className={`toggle ${value ? 'active' : ''}`} onClick={() => onChange(!value)} />
+    <span className="toggle-label">{label}</span>
+  </div>
+);
+
+const DatePicker = ({ value, onChange }) => (
+  <div className="date-picker">
+    <button className="date-btn" onClick={() => {
+      const d = new Date(value);
+      d.setDate(d.getDate() - 1);
+      onChange(d.toISOString().split('T')[0]);
+    }}>‹</button>
+    <div className="date-display">{formatShortDate(value)}</div>
+    <button className="date-btn" onClick={() => {
+      const d = new Date(value);
+      d.setDate(d.getDate() + 1);
+      onChange(d.toISOString().split('T')[0]);
+    }}>›</button>
+  </div>
+);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PAGES
@@ -480,39 +576,180 @@ const PreMarketPage = ({ onSave }) => {
   const [planNotes, setPlanNotes] = useState('');
 
   const readiness = calculateReadiness(indexTrend, marketBreadth, traction, cognitiveLoad);
+  const readinessColor = getReadinessColor(readiness);
 
   const handleSave = () => {
     const data = loadData(STORAGE_KEYS.PRE_MARKET);
-    const newEntry = { date: selectedDate, timestamp: new Date().toISOString(), masterFilter: true, indexTrend, marketBreadth, traction, cognitiveLoad, readinessScore: readiness, planAction, planTickers, planNotes };
+    const newEntry = {
+      date: selectedDate,
+      timestamp: new Date().toISOString(),
+      masterFilter: true,
+      indexTrend,
+      marketBreadth,
+      traction,
+      cognitiveLoad,
+      readinessScore: readiness,
+      planAction,
+      planTickers,
+      planNotes
+    };
+    
     const existingIndex = data.findIndex(d => d.date === selectedDate);
-    if (existingIndex >= 0) data[existingIndex] = newEntry; else data.push(newEntry);
+    if (existingIndex >= 0) {
+      data[existingIndex] = newEntry;
+    } else {
+      data.push(newEntry);
+    }
     
     saveData(STORAGE_KEYS.PRE_MARKET, data);
-    syncToSheet('PreMarket', newEntry); // Restored Sync
+    syncToSheet('PreMarket', newEntry); // Added Sync
     onSave('success', `Plan locked for ${formatShortDate(selectedDate)}`);
   };
 
   return (
-    <div className="page">
-      <div className="header"><div className="header-eyebrow">Morning Ritual</div><h1 className="header-title">Pre-market Plan</h1></div>
+    <div className="page" key="premarket">
+      <div className="header">
+        <div className="header-eyebrow">Morning Ritual</div>
+        <h1 className="header-title">Pre-market Plan</h1>
+      </div>
+
       <DatePicker value={selectedDate} onChange={setSelectedDate} />
-      <div className="header-date" style={{ textAlign: 'center', marginBottom: 16 }}>{formatDate(selectedDate)}</div>
-      <div className="card"><div className="card-title">Master Filter</div><Toggle value={masterFilter} onChange={setMasterFilter} label="I choose a Profit Factor > 3 over a single $10,000 win today."/></div>
-      {masterFilter && (
+      <div className="header-date" style={{ textAlign: 'center', marginBottom: 16 }}>
+        {formatDate(selectedDate)}
+      </div>
+
+      <div className="card">
+        <div className="card-title">Master Filter</div>
+        <Toggle 
+          value={masterFilter} 
+          onChange={setMasterFilter}
+          label="I choose a Profit Factor > 3 over a single $10,000 win today."
+        />
+      </div>
+
+      {!masterFilter ? (
+        <div className="master-filter locked">
+          <div className="master-filter-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div className="master-filter-text">
+            Acknowledge the master filter to unlock your plan.<br />
+            <small style={{ opacity: 0.8 }}>This is your first act of discipline today.</small>
+          </div>
+        </div>
+      ) : (
         <>
+          <div className="master-filter unlocked">
+            <div className="master-filter-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div className="master-filter-text">
+              Mindset locked in — trading the process, not the outcome.
+            </div>
+          </div>
+
           <div className="card">
             <div className="card-title">Market Conditions</div>
-            <div className="form-group"><label className="form-label">Index Trend</label><select className="form-select" value={indexTrend} onChange={e => setIndexTrend(e.target.value)}><option>Uptrend</option><option>Sideways</option><option>Downtrend</option></select></div>
-            <div className="form-group"><label className="form-label">Market Breadth</label><select className="form-select" value={marketBreadth} onChange={e => setMarketBreadth(e.target.value)}><option>Good</option><option>Neutral</option><option>Poor</option></select></div>
-            <div className="form-group"><label className="form-label">Traction</label><select className="form-select" value={traction} onChange={e => setTraction(Number(e.target.value))}><option value={0}>0 / 3 winners</option><option value={1}>1 / 3 winners</option><option value={2}>2 / 3 winners</option><option value={3}>3 / 3 winners</option></select></div>
+            <div className="form-group">
+              <label className="form-label">Index Trend</label>
+              <select className="form-select" value={indexTrend} onChange={e => setIndexTrend(e.target.value)}>
+                <option>Uptrend</option>
+                <option>Sideways</option>
+                <option>Downtrend</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Market Breadth</label>
+              <select className="form-select" value={marketBreadth} onChange={e => setMarketBreadth(e.target.value)}>
+                <option>Good</option>
+                <option>Neutral</option>
+                <option>Poor</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Traction (Winners in last 3)</label>
+              <select className="form-select" value={traction} onChange={e => setTraction(Number(e.target.value))}>
+                <option value={0}>0 / 3 winners</option>
+                <option value={1}>1 / 3 winners</option>
+                <option value={2}>2 / 3 winners</option>
+                <option value={3}>3 / 3 winners</option>
+              </select>
+            </div>
+            {traction <= 1 && (
+              <div className="alert alert-yellow">
+                <span className="alert-icon">!</span>
+                <span>Low traction — consider reducing size or stepping aside.</span>
+              </div>
+            )}
           </div>
+
           <div className="card">
             <div className="card-title">Mental State</div>
-            <div className="form-group"><label className="form-label">Cognitive Load</label><select className="form-select" value={cognitiveLoad} onChange={e => setCognitiveLoad(e.target.value)}><option>Clear</option><option>Neutral</option><option>Overwhelmed</option></select></div>
-            <div className="readiness"><div className="readiness-bar"><div className="readiness-fill" style={{ width: `${readiness}%`, background: getReadinessColor(readiness) }} /></div><div className="readiness-value" style={{ color: getReadinessColor(readiness) }}>{readiness}%</div><div className="readiness-label">{getReadinessStatus(readiness)}</div></div>
+            <div className="form-group">
+              <label className="form-label">Cognitive Load</label>
+              <select className="form-select" value={cognitiveLoad} onChange={e => setCognitiveLoad(e.target.value)}>
+                <option>Clear</option>
+                <option>Neutral</option>
+                <option>Overwhelmed</option>
+              </select>
+            </div>
+            {cognitiveLoad === 'Overwhelmed' && (
+              <div className="alert alert-yellow">
+                <span className="alert-icon">!</span>
+                <span>Minimize exposure — a stressed mind cannot execute.</span>
+              </div>
+            )}
+
+            <div className="readiness">
+              <div className="readiness-bar">
+                <div className="readiness-fill" style={{ width: `${readiness}%`, background: readinessColor }} />
+              </div>
+              <div className="readiness-value" style={{ color: readinessColor }}>{readiness}%</div>
+              <div className="readiness-label">{getReadinessStatus(readiness)}</div>
+            </div>
           </div>
-          <div className="card"><div className="card-title">Plan</div><input type="text" className="form-input" placeholder="Tickers" value={planTickers} onChange={e => setPlanTickers(e.target.value)}/><textarea className="form-textarea" placeholder="Plan Notes" value={planNotes} onChange={e => setPlanNotes(e.target.value)} style={{marginTop:12}}/></div>
-          <button className="btn-primary" onClick={handleSave}>Lock in today's plan</button>
+
+          <div className="card">
+            <div className="card-title">Today's Battle Plan</div>
+            <div className="form-group">
+              <label className="form-label">Primary Action</label>
+              <select className="form-select" value={planAction} onChange={e => setPlanAction(e.target.value)}>
+                <option>Buying</option>
+                <option>Selling</option>
+                <option>Moving stops</option>
+                <option>Watching only</option>
+                <option>Mixed</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Tickers</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="e.g. NVDA, CRDO, ARM"
+                value={planTickers}
+                onChange={e => setPlanTickers(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Plan Notes</label>
+              <textarea 
+                className="form-textarea"
+                placeholder="VCP breakouts only. Max 2% risk per trade..."
+                value={planNotes}
+                onChange={e => setPlanNotes(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <button className="btn-primary" onClick={handleSave}>
+            Lock in today's plan
+          </button>
         </>
       )}
     </div>
@@ -521,33 +758,233 @@ const PreMarketPage = ({ onSave }) => {
 
 const PostMarketPage = ({ onSave }) => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [mood, setMood] = useState(3);
-  const [followedPlan, setFollowedPlan] = useState(true);
-  const [pnl, setPnl] = useState(0);
-  const [coachNote, setCoachNote] = useState('');
   const [actualAction, setActualAction] = useState('Buying');
   const [actualTickers, setActualTickers] = useState('');
   const [actualNotes, setActualNotes] = useState('');
+  const [mood, setMood] = useState(3);
+  const [violations, setViolations] = useState([]);
+  const [followedPlan, setFollowedPlan] = useState(true);
+  const [tradeCount, setTradeCount] = useState(0);
+  const [coachNote, setCoachNote] = useState('');
+
+  const violationOptions = [
+    'FOMO trade', 'Revenge trade', 'Boredom trade', 'Panic sell',
+    'Oversized position', 'Ignored stop-loss', 'Chased entry', 'Other'
+  ];
+
+  const moodLabels = {
+    0: { text: 'Full panic / FOMO', class: 'bad' },
+    1: { text: 'Reactive / fear-driven', class: 'bad' },
+    2: { text: 'Uneasy / emotional', class: 'bad' },
+    3: { text: 'Neutral / slightly uneasy', class: 'neutral' },
+    4: { text: 'Calm / focused', class: 'good' },
+    5: { text: 'Clinical / flow state', class: 'good' },
+  };
+
+  const toggleViolation = (v) => {
+    if (violations.includes(v)) {
+      setViolations(violations.filter(x => x !== v));
+    } else {
+      setViolations([...violations, v]);
+    }
+  };
+
+  const preMarketData = loadData(STORAGE_KEYS.PRE_MARKET);
+  const todayPlan = preMarketData.find(d => d.date === selectedDate);
 
   const handleSave = () => {
     const data = loadData(STORAGE_KEYS.POST_MARKET);
-    const newEntry = { date: selectedDate, timestamp: new Date().toISOString(), mood_score: mood, followed_plan: followedPlan, pnl, coachNote, actualAction, actualTickers, actualNotes };
+    const newEntry = {
+      date: selectedDate,
+      timestamp: new Date().toISOString(),
+      actualAction,
+      actualTickers,
+      actualNotes,
+      mood_score: mood,
+      violations: violations.join(', '),
+      followed_plan: followedPlan,
+      tradeCount,
+      coachNote
+    };
+    
     const existingIndex = data.findIndex(d => d.date === selectedDate);
-    if (existingIndex >= 0) data[existingIndex] = newEntry; else data.push(newEntry);
+    if (existingIndex >= 0) {
+      data[existingIndex] = newEntry;
+    } else {
+      data.push(newEntry);
+    }
     
     saveData(STORAGE_KEYS.POST_MARKET, data);
-    syncToSheet('PostMarket', newEntry); // Restored Sync
-    onSave('success', `Audit submitted`);
+    syncToSheet('PostMarket', newEntry); // Added Sync
+    
+    const dayType = followedPlan && mood >= 4 ? 'GREEN' : followedPlan ? 'YELLOW' : 'RED';
+    const toastType = dayType === 'GREEN' ? 'success' : dayType === 'YELLOW' ? 'warning' : 'error';
+    onSave(toastType, `${dayType} DAY logged`);
   };
 
   return (
-    <div className="page">
-      <div className="header"><div className="header-eyebrow">Reflection</div><h1 className="header-title">Post-market Audit</h1></div>
+    <div className="page" key="postmarket">
+      <div className="header">
+        <div className="header-eyebrow">Evening Reflection</div>
+        <h1 className="header-title">Post-market Audit</h1>
+      </div>
+
       <DatePicker value={selectedDate} onChange={setSelectedDate} />
-      <div className="card"><div className="card-title">Emotional State</div><Slider value={mood} onChange={setMood} /><div style={{textAlign:'center', fontWeight:600}}>{mood}/5</div></div>
-      <div className="card"><div className="card-title">Compliance</div><Toggle value={followedPlan} onChange={setFollowedPlan} label="Followed the plan?"/></div>
-      <div className="card"><div className="card-title">Results</div><input type="number" className="form-input" placeholder="PnL ($)" onChange={e => setPnl(e.target.value)}/><textarea className="form-textarea" placeholder="Journal" onChange={e => setCoachNote(e.target.value)} style={{marginTop:12}}/></div>
-      <button className="btn-primary" onClick={handleSave}>Submit audit</button>
+      <div className="header-date" style={{ textAlign: 'center', marginBottom: 16 }}>
+        {formatDate(selectedDate)}
+      </div>
+
+      <div className="card">
+        <div className="card-title">The Plan</div>
+        {todayPlan ? (
+          <div className="plan-display">
+            <div className="plan-field">
+              <div className="plan-field-label">Action</div>
+              <div className="plan-field-value accent">{todayPlan.planAction}</div>
+            </div>
+            <div className="plan-field">
+              <div className="plan-field-label">Tickers</div>
+              <div className="plan-field-value mono">{todayPlan.planTickers || '—'}</div>
+            </div>
+            <div className="plan-field">
+              <div className="plan-field-label">Readiness</div>
+              <div className="plan-field-value" style={{ fontSize: 20, fontWeight: 700, color: getReadinessColor(todayPlan.readinessScore) }}>
+                {todayPlan.readinessScore}%
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </div>
+            <div className="empty-state-text">No plan for {formatShortDate(selectedDate)}</div>
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <div className="card-title">Actual Execution</div>
+        <div className="form-group">
+          <label className="form-label">What did you do?</label>
+          <select className="form-select" value={actualAction} onChange={e => setActualAction(e.target.value)}>
+            <option>Buying</option>
+            <option>Selling</option>
+            <option>Moving stops</option>
+            <option>Watching only</option>
+            <option>Mixed</option>
+            <option>Over-traded</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Tickers Traded</label>
+          <input 
+            type="text" 
+            className="form-input" 
+            placeholder="e.g. NVDA, AMD"
+            value={actualTickers}
+            onChange={e => setActualTickers(e.target.value)}
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Notes</label>
+          <textarea 
+            className="form-textarea"
+            placeholder="What happened? Be honest."
+            value={actualNotes}
+            onChange={e => setActualNotes(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">Emotional State</div>
+        <div className="form-group">
+          <label className="form-label">Mood (0 → 5)</label>
+          <Slider value={mood} onChange={setMood} />
+        </div>
+        <div className="mood-display">
+          <div className={`mood-circle ${moodLabels[mood].class}`}>{mood}</div>
+          <div className="mood-text">
+            <h4>{moodLabels[mood].text}</h4>
+            <p>Mood score {mood} / 5</p>
+          </div>
+        </div>
+
+        {mood <= 3 && (
+          <div className="form-group" style={{ marginTop: 14 }}>
+            <label className="form-label">Rule Violations</label>
+            <div className="chips-container">
+              {violationOptions.map(v => (
+                <div 
+                  key={v}
+                  className={`chip ${violations.includes(v) ? 'selected' : 'unselected'}`}
+                  onClick={() => toggleViolation(v)}
+                >
+                  {v}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <div className="card-title">Plan Compliance</div>
+        <Toggle 
+          value={followedPlan}
+          onChange={setFollowedPlan}
+          label="Followed the pre-market plan?"
+        />
+        
+        {followedPlan && mood >= 4 && (
+          <div className="alert alert-green">
+            <span className="alert-icon">✓</span>
+            <span>Green day — process followed, mind clear.</span>
+          </div>
+        )}
+        {followedPlan && mood < 4 && (
+          <div className="alert alert-yellow">
+            <span className="alert-icon">•</span>
+            <span>Rules followed but felt uneasy.</span>
+          </div>
+        )}
+        {!followedPlan && (
+          <div className="alert alert-red">
+            <span className="alert-icon">×</span>
+            <span>Plan not followed. Diagnose why.</span>
+          </div>
+        )}
+
+        <div className="form-group" style={{ marginTop: 14 }}>
+          <label className="form-label">Number of Trades</label>
+          <input 
+            type="number" 
+            className="form-input" 
+            value={tradeCount}
+            onChange={e => setTradeCount(Number(e.target.value))}
+            min={0}
+            style={{ width: '100px' }}
+          />
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">Coach's Journal</div>
+        <textarea 
+          className="form-textarea"
+          placeholder="One honest sentence about today..."
+          value={coachNote}
+          onChange={e => setCoachNote(e.target.value)}
+        />
+      </div>
+
+      <button className="btn-primary" onClick={handleSave}>
+        Submit audit
+      </button>
     </div>
   );
 };
@@ -555,61 +992,212 @@ const PostMarketPage = ({ onSave }) => {
 const CalendarPage = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [entries, setEntries] = useState(loadData(STORAGE_KEYS.POST_MARKET));
   
   const today = new Date();
+  const data = loadData(STORAGE_KEYS.POST_MARKET);
 
-  const handleDeleteEntry = (dateToDelete) => {
-    if (window.confirm(`Delete entry for ${formatShortDate(dateToDelete)}?`)) {
-      const updated = entries.filter(e => e.date !== dateToDelete);
-      setEntries(updated);
-      saveData(STORAGE_KEYS.POST_MARKET, updated);
-    }
-  };
+  const sortedData = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+  let streak = 0;
+  for (const d of sortedData) {
+    if (d.followed_plan && d.mood_score >= 4) streak++;
+    else break;
+  }
 
-  const sortedData = [...entries].sort((a, b) => new Date(b.date) - new Date(a.date));
-  const total = entries.length;
-  const greens = entries.filter(d => d.followed_plan && d.mood_score >= 4).length;
-  const yellows = entries.filter(d => d.followed_plan && d.mood_score < 4).length;
-  const reds = entries.filter(d => !d.followed_plan).length;
+  const total = data.length;
+  const greens = data.filter(d => d.followed_plan && d.mood_score >= 4).length;
+  const yellows = data.filter(d => d.followed_plan && d.mood_score < 4).length;
+  const reds = data.filter(d => !d.followed_plan).length;
   const complianceRate = total > 0 ? Math.round(((greens + yellows) / total) * 100) : 0;
+  const complianceColor = complianceRate >= 80 ? 'var(--green)' : complianceRate >= 60 ? 'var(--yellow)' : 'var(--red)';
+
+  const dayMap = {};
+  data.forEach(d => {
+    dayMap[d.date] = d;
+  });
 
   const firstDay = new Date(currentYear, currentMonth, 1);
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const startPad = (firstDay.getDay() + 7) % 7;
+  
   const monthName = firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
 
   const calendarDays = [];
-  for (let i = startPad - 1; i >= 0; i--) calendarDays.push({ type: 'other' });
+  
+  const prevMonth = new Date(currentYear, currentMonth, 0);
+  for (let i = startPad - 1; i >= 0; i--) {
+    calendarDays.push({ day: prevMonth.getDate() - i, type: 'other' });
+  }
+  
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const record = entries.find(e => e.date === dateStr);
-    let dayClass = record ? (record.followed_plan && record.mood_score >= 4 ? 'green-day' : record.followed_plan ? 'yellow-day' : 'red-day') : '';
-    calendarDays.push({ day: d, type: 'current', dayClass, dateStr });
+    const isToday = today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === d;
+    const record = dayMap[dateStr];
+    
+    let dayClass = '';
+    let dotClass = '';
+    if (record) {
+      if (record.followed_plan && record.mood_score >= 4) {
+        dayClass = 'green-day';
+        dotClass = 'green';
+      } else if (record.followed_plan) {
+        dayClass = 'yellow-day';
+        dotClass = 'yellow';
+      } else {
+        dayClass = 'red-day';
+        dotClass = 'red';
+      }
+    }
+    
+    calendarDays.push({ day: d, type: 'current', isToday, dayClass, dotClass, dateStr });
+  }
+  
+  const remaining = 7 - (calendarDays.length % 7);
+  if (remaining < 7) {
+    for (let i = 1; i <= remaining; i++) {
+      calendarDays.push({ day: i, type: 'other' });
+    }
   }
 
+  const prevMonth2 = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const nextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
+
   return (
-    <div className="page">
-      <div className="header"><div className="header-eyebrow">Metrics</div><h1 className="header-title">Calendar</h1></div>
-      <div className="metrics-row"><div className="metric-tile"><div className="metric-value blue">{total}</div><div className="metric-label">Sessions</div></div><div className="metric-tile"><div className="metric-value green">{greens}</div><div className="metric-label">Green</div></div><div className="metric-tile"><div className="metric-value yellow">{yellows}</div><div className="metric-label">Yellow</div></div><div className="metric-tile"><div className="metric-value red">{reds}</div><div className="metric-label">Red</div></div></div>
-      <div className="card">
-        <div className="calendar-nav"><button className="calendar-btn" onClick={() => setCurrentMonth(prev => prev === 0 ? 11 : prev - 1)}>‹</button><div className="calendar-title">{monthName}</div><button className="calendar-btn" onClick={() => setCurrentMonth(prev => prev === 11 ? 0 : prev + 1)}>›</button></div>
-        <div className="calendar-grid">{calendarDays.map((cell, i) => <div key={i} className={`calendar-day ${cell.dayClass || ''}`}>{cell.day}</div>)}</div>
+    <div className="page" key="calendar">
+      <div className="header">
+        <div className="header-eyebrow">Behavioral Fingerprint</div>
+        <h1 className="header-title">Calendar</h1>
       </div>
-      <div className="card">
-        <div className="card-title">Recent Sessions</div>
-        <div className="history-list">
-          {sortedData.slice(0, 5).map(d => (
-            <div key={d.date} className="history-item">
-              <span className="history-date">{formatShortDate(d.date)}</span>
-              <div className="history-meta">
-                <span className={`history-status ${d.followed_plan ? 'yes' : 'no'}`}>{d.followed_plan ? '✓' : '×'}</span>
-                <button className="delete-btn" onClick={() => handleDeleteEntry(d.date)}><Icons.Trash /></button>
+
+      <div className="streak-card">
+        <div>
+          <div className="streak-label">Probation Streak</div>
+          <div className="streak-dots">
+            {[0, 1, 2, 3, 4].map(i => (
+              <div key={i} className={`streak-dot ${i < streak ? 'filled' : 'empty'}`}>
+                {i < streak ? '✓' : i + 1}
               </div>
+            ))}
+          </div>
+          <div className="streak-message" style={{ color: streak >= 3 ? 'var(--green)' : 'var(--text-mid)' }}>
+            {streak === 0 ? 'Start your streak' :
+             streak < 3 ? `${streak} / 5 — building` :
+             streak < 5 ? `${streak} / 5 — in the zone` :
+             'Full streak achieved'}
+          </div>
+        </div>
+        <div className="streak-number">
+          <div className="streak-value">{streak}</div>
+          <div className="streak-sublabel">/ 5 days</div>
+        </div>
+      </div>
+
+      <div className="metrics-row">
+        <div className="metric-tile">
+          <div className="metric-value blue">{total}</div>
+          <div className="metric-label">Sessions</div>
+        </div>
+        <div className="metric-tile">
+          <div className="metric-value green">{greens}</div>
+          <div className="metric-label">Green</div>
+        </div>
+        <div className="metric-tile">
+          <div className="metric-value yellow">{yellows}</div>
+          <div className="metric-label">Yellow</div>
+        </div>
+        <div className="metric-tile">
+          <div className="metric-value red">{reds}</div>
+          <div className="metric-label">Red</div>
+        </div>
+      </div>
+
+      {total > 0 && (
+        <div className="compliance-bar">
+          <div className="compliance-track">
+            <div className="compliance-fill" style={{ width: `${complianceRate}%`, background: complianceColor }} />
+          </div>
+          <div className="compliance-value" style={{ color: complianceColor }}>{complianceRate}%</div>
+          <div className="compliance-label">compliance</div>
+        </div>
+      )}
+
+      <div className="card">
+        <div className="calendar-nav">
+          <button className="calendar-btn" onClick={prevMonth2}>‹</button>
+          <div className="calendar-title">{monthName}</div>
+          <button className="calendar-btn" onClick={nextMonth}>›</button>
+        </div>
+
+        <div className="calendar-weekdays">
+          {weekdays.map(d => (
+            <div key={d} className="calendar-weekday">{d}</div>
+          ))}
+        </div>
+
+        <div className="calendar-grid">
+          {calendarDays.map((cell, i) => (
+            <div 
+              key={i} 
+              className={`calendar-day ${cell.type === 'other' ? 'other-month' : ''} ${cell.isToday ? 'today' : ''} ${cell.dayClass || ''}`}
+            >
+              {cell.day}
+              {cell.dotClass && <span className={`calendar-day-dot ${cell.dotClass}`} />}
             </div>
           ))}
         </div>
+
+        <div className="calendar-legend">
+          <div className="legend-item"><span className="legend-dot green" /> Green</div>
+          <div className="legend-item"><span className="legend-dot yellow" /> Yellow</div>
+          <div className="legend-item"><span className="legend-dot red" /> Red</div>
+        </div>
       </div>
+
+      {total >= 3 && (
+        <div className="coach-box">
+          <div className="coach-title">Coach Insight</div>
+          <div className="coach-text">
+            Over <strong>{total} sessions</strong>, your compliance is <strong style={{ color: complianceColor }}>{complianceRate}%</strong>.
+            {reds > 0 && (
+              <> You broke your plan on <strong style={{ color: 'var(--red)' }}>{Math.round((reds / total) * 100)}%</strong> of days.</>
+            )}
+          </div>
+        </div>
+      )}
+
+      {total > 0 && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <div className="card-title">Recent Sessions</div>
+          <div className="history-list">
+            {sortedData.slice(0, 5).map(d => (
+              <div key={d.date} className="history-item">
+                <span className="history-date">{formatShortDate(d.date)}</span>
+                <div className="history-meta">
+                  <span className="history-mood">Mood: {d.mood_score}</span>
+                  <span className={`history-status ${d.followed_plan ? 'yes' : 'no'}`}>
+                    {d.followed_plan ? '✓' : '×'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -630,17 +1218,42 @@ export default function App() {
   return (
     <>
       <style>{styles}</style>
-      <div className="water-bg" /><div className="light-rays" />
+      
+      <div className="water-bg" />
+      <div className="light-rays" />
+      
       <Toast {...toast} />
+      
       <div className="app">
         {currentPage === 'premarket' && <PreMarketPage onSave={showToast} />}
         {currentPage === 'postmarket' && <PostMarketPage onSave={showToast} />}
         {currentPage === 'calendar' && <CalendarPage />}
-        <div className="bottom-nav"><div className="bottom-nav-inner">
-          <button className={`nav-item ${currentPage === 'premarket' ? 'active' : ''}`} onClick={() => setCurrentPage('premarket')}><span className="nav-icon"><Icons.Sun /></span><span className="nav-label">Plan</span></button>
-          <button className={`nav-item center ${currentPage === 'postmarket' ? 'active' : ''}`} onClick={() => setCurrentPage('postmarket')}><span className="nav-icon"><Icons.Reflect /></span><span className="nav-label">Audit</span></button>
-          <button className={`nav-item ${currentPage === 'calendar' ? 'active' : ''}`} onClick={() => setCurrentPage('calendar')}><span className="nav-icon"><Icons.Calendar /></span><span className="nav-label">History</span></button>
-        </div></div>
+
+        <div className="bottom-nav">
+          <div className="bottom-nav-inner">
+            <button 
+              className={`nav-item ${currentPage === 'premarket' ? 'active' : ''}`}
+              onClick={() => setCurrentPage('premarket')}
+            >
+              <span className="nav-icon"><Icons.Sun /></span>
+              <span className="nav-label">Plan</span>
+            </button>
+            <button 
+              className={`nav-item center ${currentPage === 'postmarket' ? 'active' : ''}`}
+              onClick={() => setCurrentPage('postmarket')}
+            >
+              <span className="nav-icon"><Icons.Reflect /></span>
+              <span className="nav-label">Audit</span>
+            </button>
+            <button 
+              className={`nav-item ${currentPage === 'calendar' ? 'active' : ''}`}
+              onClick={() => setCurrentPage('calendar')}
+            >
+              <span className="nav-icon"><Icons.Calendar /></span>
+              <span className="nav-label">Calendar</span>
+            </button>
+          </div>
+        </div>
       </div>
     </>
   );
