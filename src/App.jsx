@@ -8,9 +8,6 @@ import React, { useState, useEffect } from 'react';
 // Paste your Google Apps Script Web App URL here
 const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbz9yzwJprVZZu0lWfs7C99SIy627AVuIx3wtriFEr1b97WiXGtW7fxfylAZOSdF_KRUlg/exec";
 
-// Configuration - Update with your Google Sheet ID
-const SHEET_ID = "AKfycbz9yzwJprVZZu0lWfs7C99SIy627AVuIx3wtriFEr1b97WiXGtW7fxfylAZOSdF_KRUlg";
-
 const STORAGE_KEYS = {
   PRE_MARKET: 'disciplined_trader_premarket',
   POST_MARKET: 'disciplined_trader_postmarket'
